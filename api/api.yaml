@@ -4,5 +4,68 @@ info:
   description: Chat in Golang
   version: 1.0.0
 servers:
-  - url: 'https'
+  - url: http://localhost:8080/
+
+components:
+  schemas:
+    Todo:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        user:
+          type: string
+          format: uuid
+        task:
+          type: string
+        status:
+          type: string
+          enum:
+            - on_hold
+            - working
+            - done
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+      required:
+        - user
+        - task
+        - status
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+      required:
+        - code
+        - message
+
+
 paths:
+  /todos:
+    get:
+      description: Returns all the todo's of the user
+      operationId: getTodos
+      responses:
+        '200':
+          description: get todo's response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Todo'
+        default:
+          description: unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
