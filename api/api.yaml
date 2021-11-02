@@ -8,33 +8,24 @@ servers:
 
 components:
   schemas:
-    Todo:
+    User:
       type: object
       properties:
         id:
           type: integer
           format: int32
-        user:
+        name:
           type: string
-          format: uuid
-        task:
+        userName:
           type: string
-        status:
+        email:
           type: string
-          enum:
-            - on_hold
-            - working
-            - done
-        created_at:
+        password:
           type: string
-          format: date-time
-        completed_at:
-          type: string
-          format: date-time
       required:
-        - user
-        - task
-        - status
+        - name
+        - userName
+        - password
 
     Error:
       type: object
@@ -50,21 +41,53 @@ components:
 
 
 paths:
-  /todos:
-    get:
-      description: Returns all the todo's of the user
-      operationId: getTodos
+  /users:
+    post:
+      summary: Creates a new user
+      description: Creates a new user
+      operationId: addUser
+      requestBody:
+        description: Add user to chat
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
       responses:
         '200':
-          description: get todo's response
+          description: user response
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Todo'
+                $ref: '#/components/schemas/User'
         default:
-          description: unexpected Error
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /users/{id}:
+    get:
+      summary: Returns a user by ID
+      description: Returns a use based on a single ID
+      operationId: findUserByID
+      parameters:
+        - name: id
+          in: path
+          description: ID of user to fetch
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: user response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        default:
+          description: unexpected error
           content:
             application/json:
               schema:

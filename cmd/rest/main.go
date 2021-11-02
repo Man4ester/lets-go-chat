@@ -1,18 +1,15 @@
 package main
 
 import (
-	"fmt"
-	"github.com/gorilla/mux"
-	"lets-go-chat/internal/handlers"
-	"net/http"
+	"github.com/labstack/echo/v4"
+	handlers "lets-go-chat/internal/handlers"
+	spec "lets-go-chat/pkg/openapi3"
 )
 
-
 func main(){
-	r := mux.NewRouter()
-	r.HandleFunc("/", handlers.HomeHandler)
-	http.Handle("/", r)
+	e := echo.New()
+	spec.RegisterHandlers(e, handlers.Server{})
+	e.Logger.Fatal(e.Start(":8080"))
 
-	fmt.Println("Server is listening...")
-	http.ListenAndServe(":8080", nil)
+
 }

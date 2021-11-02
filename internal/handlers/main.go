@@ -1,12 +1,39 @@
 package handlers
 
 import (
-	"fmt"
+	"encoding/json"
+	"github.com/labstack/echo/v4"
+	Api "lets-go-chat/pkg/openapi3"
+	"math/rand"
 	"net/http"
 )
 
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
+var userStorage = make(map[int32]Api.User)
 
-	response := "Hello world"
-	fmt.Fprint(w, response)
+type Server struct {
+
+}
+
+func (s Server) FindUserByID(c echo.Context, id int32) error  {
+	if user, ok := userStorage[id]; ok {
+		j, _ := json.Marshal(user)
+		c.JSON(http.StatusOK, string(j))
+	}
+	return nil
+}
+
+func (s Server) AddUser(c echo.Context) error {
+	var req Api.AddUserJSONRequestBody
+	c.Bind(&req)
+	user := Api.User{
+		Name: req.Name,
+		UserName: req.UserName,
+		Password: req.Password,
+	}
+	userID := rand.Int31()
+	user.Id = &userID
+	userStorage[userID] = user
+	j, _ := json.Marshal(user)
+	c.JSON(http.StatusOK, string(j))
+	return nil
 }
