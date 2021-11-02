@@ -3,8 +3,9 @@ package hasher
 
 import (
 	"crypto/md5"
+	"encoding/hex"
+
 	"errors"
-	"fmt"
 )
 
 
@@ -13,8 +14,10 @@ func HashPassword(password string) (string, error) {
 	if len(password) < 3 {
 		return "", errors.New("password to short")
 	}
-	md5 :=md5.Sum([]byte(password))
-	return fmt.Sprintf("%x", md5), nil
+	data := []byte(password)
+	b := md5.Sum(data)
+	pass := hex.EncodeToString(b[:])
+	return pass, nil
 }
 
 // CheckPasswordHash function for checking hashed txt via hash
