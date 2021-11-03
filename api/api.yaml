@@ -119,3 +119,11 @@ components:
           format: uuid
         userName:
           type: string
+
+
+curl -s -I -X POST 'http://localhost:8080/v1/user/login' \
+--header 'Content-Type: application/json' \
+  --data-raw '{
+  "userName":"Alex2",
+  "password":"password"
+}'

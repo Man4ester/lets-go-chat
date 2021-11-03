@@ -6,6 +6,7 @@ import (
 	rep "lets-go-chat/internal/repositories"
 	"lets-go-chat/pkg/hasher"
 	"net/http"
+	"time"
 )
 
 func LoginUser(w http.ResponseWriter, r *http.Request) {
@@ -25,6 +26,8 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	userLoginResponse := models.LoginUserResponse{
 		Url: "redirect to user",
 	}
+	w.Header().Add("X-Rate-Limit", "2")
+	w.Header().Add("X-Expires-After", time.Now().UTC().String())
 	w.WriteHeader(http.StatusFound)
 	json.NewEncoder(w).Encode(&userLoginResponse)
 }
