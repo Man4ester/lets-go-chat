@@ -1,15 +1,16 @@
 package main
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/gorilla/mux"
 	handlers "lets-go-chat/internal/handlers"
-	spec "lets-go-chat/pkg/openapi3"
+	"net/http"
 )
 
 func main(){
-	e := echo.New()
-	spec.RegisterHandlers(e, handlers.Server{})
-	e.Logger.Fatal(e.Start(":8080"))
+	r := mux.NewRouter()
+	r.HandleFunc("/v1/user", handlers.CreateUser).Methods("POST")
+	r.HandleFunc("/v1/user/login", handlers.LoginUser).Methods("POST")
+	http.ListenAndServe(":8080", r)
 
 
 }

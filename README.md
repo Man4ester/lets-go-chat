@@ -15,16 +15,20 @@ docker run -p 8080:8080 -it go-chat
 ## Rest API
 create user
 ```
-curl --location --request POST 'http://localhost:8080/users' \
+curl --location --request POST 'http://localhost:8080/v1/user' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-    "name":"Sasha",
-    "userName":"userName",
-    "password":"passsdasdasdasdword"
+    "userName":"Alex2",
+    "password":"password"
 }'
 ```
 
-get user
+login user
 ```
-curl --location --request GET 'http://localhost:8080/users/{user_id}'
+curl --location --request POST 'http://localhost:8080/v1/user/login' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "userName":"Alex",
+    "password":"password"
+}'
 ```
