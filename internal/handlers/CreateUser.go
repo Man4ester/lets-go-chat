@@ -12,8 +12,16 @@ import (
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var userRequest models.CreateUserRequest
-	_ = json.NewDecoder(r.Body).Decode(&userRequest)
-	userId, _ := uuid.NewV4()
+	err := json.NewDecoder(r.Body).Decode(&userRequest)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	userId, err := uuid.NewV4()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	if len(userRequest.UserName) < 3 {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -25,11 +33,11 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	} else {
 		userResponse := models.CreateUserResponse{
 			UserName: userRequest.UserName,
-			Id: userId.String(),
+			Id:       userId.String(),
 		}
 
 		user := models.User{
-			Id: userResponse.Id,
+			Id:       userResponse.Id,
 			UserName: userResponse.UserName,
 			Password: passwordHashed,
 		}

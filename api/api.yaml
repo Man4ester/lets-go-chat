@@ -34,10 +34,10 @@ paths:
                 $ref: '#/components/schemas/CreateUserResponse'
         400:
           description: Bad request, empty username or id
-          content: {}
+          content: { }
         500:
           description: Internal Server Error
-          content: {}
+          content: { }
       x-codegen-request-body-name: body
   /user/login:
     post:
@@ -72,10 +72,10 @@ paths:
                 $ref: '#/components/schemas/LoginUserResonse'
         400:
           description: Invalid username/password
-          content: {}
+          content: { }
         500:
           description: Internal Server Error
-          content: {}
+          content: { }
 components:
   schemas:
     LoginUserRequest:
@@ -119,11 +119,3 @@ components:
           format: uuid
         userName:
           type: string
-
-
-curl -s -I -X POST 'http://localhost:8080/v1/user/login' \
---header 'Content-Type: application/json' \
-  --data-raw '{
-  "userName":"Alex2",
-  "password":"password"
-}'

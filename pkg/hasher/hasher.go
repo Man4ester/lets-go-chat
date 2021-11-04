@@ -8,7 +8,6 @@ import (
 	"errors"
 )
 
-
 // HashPassword function for hashing txt
 func HashPassword(password string) (string, error) {
 	if len(password) < 3 {
@@ -23,9 +22,8 @@ func HashPassword(password string) (string, error) {
 // CheckPasswordHash function for checking hashed txt via hash
 func CheckPasswordHash(password, hash string) bool {
 	receivedHash, err := HashPassword(password)
-	if err !=nil {
+	if err != nil {
 		return false
 	}
 	return receivedHash == hash
 }
-

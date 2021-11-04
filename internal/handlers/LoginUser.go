@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"lets-go-chat/internal/models"
 	rep "lets-go-chat/internal/repositories"
 	"lets-go-chat/pkg/hasher"
@@ -11,10 +12,18 @@ import (
 
 func LoginUser(w http.ResponseWriter, r *http.Request) {
 	var userLoginRequest models.LoginUserRequest
-	_ = json.NewDecoder(r.Body).Decode(&userLoginRequest)
+	err := json.NewDecoder(r.Body).Decode(&userLoginRequest)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	user, err := rep.GetUserByUserName(userLoginRequest.UserName)
-	if err != nil{
+	if errors.Is(err, rep.UserNotFound) {
 		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	userAuth := hasher.CheckPasswordHash(userLoginRequest.Password, user.Password)

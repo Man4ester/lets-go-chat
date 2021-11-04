@@ -5,27 +5,27 @@ import (
 	"github.com/gorilla/mux"
 	"lets-go-chat/configs"
 	"lets-go-chat/internal/handlers"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
 )
 
-
 var configuration configs.Configuration
 
-func main(){
-	err :=loadConfiguration()
+func main() {
+	err := loadConfiguration()
 	if err != nil {
-		return
+		log.Fatal("CANT LOAD CONFIG")
 	}
 	r := mux.NewRouter()
-	r.HandleFunc("/v1/user", handlers.CreateUser).Methods("POST")
-	r.HandleFunc("/v1/user/login", handlers.LoginUser).Methods("POST")
-	http.ListenAndServe(":" + strconv.Itoa(configuration.ServerPort), r)
+	r.HandleFunc("/v1/user", handlers.CreateUser).Methods(http.MethodPost)
+	r.HandleFunc("/v1/user/login", handlers.LoginUser).Methods(http.MethodPost)
+	http.ListenAndServe(":"+strconv.Itoa(configuration.ServerPort), r)
 
 }
 
-func loadConfiguration() error{
+func loadConfiguration() error {
 	file, _ := os.Open("config.json")
 	decoder := json.NewDecoder(file)
 	err := decoder.Decode(&configuration)
