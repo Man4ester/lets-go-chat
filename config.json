@@ -1,3 +1,11 @@
 {
-  "server_port": 8080
+  "server_port": 8080,
+  "bd_config": {
+    "db_dialect": "postgres",
+    "db_host": "localhost",
+    "db_port": 5432,
+    "db_name": "users",
+    "db_user": "postgres",
+    "db_password": "secret"
+  }
 }

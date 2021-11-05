@@ -41,7 +41,11 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 			UserName: userResponse.UserName,
 			Password: passwordHashed,
 		}
-		rep.SaveUser(user)
+		err = rep.SaveUser(user)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(&userResponse)
 	}
