@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"encoding/json"
 	"errors"
+	"time"
 	"lets-go-chat/internal/models"
 	rep "lets-go-chat/internal/repositories"
 	"lets-go-chat/pkg/hasher"
-	"time"
 )
 
 func LoginUser(w http.ResponseWriter, r *http.Request) {
