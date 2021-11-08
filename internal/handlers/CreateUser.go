@@ -1,12 +1,12 @@
 package handlers
 
 import (
+	"net/http"
 	"encoding/json"
 	"github.com/nu7hatch/gouuid"
 	"lets-go-chat/internal/models"
 	rep "lets-go-chat/internal/repositories"
 	"lets-go-chat/pkg/hasher"
-	"net/http"
 )
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -46,8 +46,14 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+
+		err =  json.NewEncoder(w).Encode(&userResponse)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(&userResponse)
 	}
 
 }

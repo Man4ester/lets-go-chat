@@ -2,22 +2,10 @@ package configs
 
 import (
 	"encoding/json"
-	"github.com/labstack/gommon/log"
 	"os"
+
+	"github.com/labstack/gommon/log"
 )
-
-var FilePath = ""
-
-var Config Configuration
-
-func init() {
-	file, _ := os.Open("config.json")
-	decoder := json.NewDecoder(file)
-	err := decoder.Decode(&Config)
-	if err != nil {
-		log.Fatal("CANT LOGIN CONFIG")
-	}
-}
 
 type Configuration struct {
 	ServerPort int      `json:"server_port"`
@@ -31,4 +19,15 @@ type DBConfig struct {
 	DBName     string `json:"db_name"`
 	DBUser     string `json:"db_user"`
 	DBPassword string `json:"db_password"`
+}
+
+func LoadConfig(configFile string) *Configuration {
+	var config Configuration
+	file, _ := os.Open(configFile)
+	decoder := json.NewDecoder(file)
+	err := decoder.Decode(&config)
+	if err != nil {
+		log.Fatal("cant load config")
+	}
+	return &config
 }
