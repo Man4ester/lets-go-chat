@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"encoding/json"
+	"fmt"
 	"github.com/nu7hatch/gouuid"
 	"lets-go-chat/internal/models"
 	rep "lets-go-chat/internal/repositories"
@@ -30,6 +31,8 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	passwordHashed, err := hasher.HashPassword(userRequest.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err)
+		return
 	} else {
 		userResponse := models.CreateUserResponse{
 			UserName: userRequest.UserName,
@@ -44,12 +47,14 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		err = rep.SaveUser(user)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Println(err)
 			return
 		}
 
 		err =  json.NewEncoder(w).Encode(&userResponse)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Println(err)
 			return
 		}
 

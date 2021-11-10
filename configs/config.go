@@ -3,8 +3,6 @@ package configs
 import (
 	"encoding/json"
 	"os"
-
-	"github.com/labstack/gommon/log"
 )
 
 type Configuration struct {
@@ -21,13 +19,16 @@ type DBConfig struct {
 	DBPassword string `json:"db_password"`
 }
 
-func LoadConfig(configFile string) *Configuration {
+func LoadConfig(configFile string) (*Configuration, error) {
 	var config Configuration
-	file, _ := os.Open(configFile)
-	decoder := json.NewDecoder(file)
-	err := decoder.Decode(&config)
-	if err != nil {
-		log.Fatal("cant load config")
+	file, err := os.Open(configFile)
+	if err != nil{
+		return &config, err
 	}
-	return &config
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&config)
+	if err != nil {
+		return &config, err
+	}
+	return &config, nil
 }
