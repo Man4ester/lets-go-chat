@@ -14,13 +14,10 @@ import (
 	rep "lets-go-chat/internal/repositories"
 )
 
-var configFile *string
-
-func init() {
-	configFile = flag.String("config", "config.json", "Configuration file in JSON-format")
-}
-
 func main() {
+
+	configFile := flag.String("config", "", "Configuration file in JSON-format")
+	flag.Parse()
 
 	config, err := configs.LoadConfig(*configFile)
 	if err != nil {
