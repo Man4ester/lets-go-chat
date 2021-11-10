@@ -22,7 +22,10 @@ func init() {
 
 func main() {
 
-	config := configs.LoadConfig(*configFile)
+	config, err := configs.LoadConfig(*configFile)
+	if err != nil {
+		log.Fatal("can't load configuration")
+	}
 
 	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", config.DBConfig.DBHost, config.DBConfig.DBPort, config.DBConfig.DBUser, config.DBConfig.DBPassword, config.DBConfig.DBName)
 	db, err := sql.Open("postgres", psqlconn)
