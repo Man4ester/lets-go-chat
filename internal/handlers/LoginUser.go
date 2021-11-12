@@ -20,7 +20,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userRep := rep.GetUSerRepository()
+	userRep := rep.GetUserRepository()
 	user, err := userRep.GetUserByUserName(userLoginRequest.UserName)
 	if errors.Is(err, rep.UserNotFound) {
 		w.WriteHeader(http.StatusNotFound)

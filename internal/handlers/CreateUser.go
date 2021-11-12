@@ -45,7 +45,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 			Password: passwordHashed,
 		}
 
-		userRep := rep.GetUSerRepository()
+		userRep := rep.GetUserRepository()
 
 		err = userRep.SaveUser(user)
 		if err != nil {

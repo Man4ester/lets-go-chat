@@ -30,7 +30,7 @@ func main() {
 		log.Fatal("can't connect to DB")
 	}
 
-	rep.AddUserRepository(rep.NewUsersDataRepository(db))
+	rep.RegisterUserRepository(rep.NewUsersDataRepository(db))
 	defer db.Close()
 
 	rep.NewUsersDataRepository(db)

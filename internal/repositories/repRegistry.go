@@ -2,10 +2,10 @@ package repositories
 
 var usersDataRep usersDataRepository
 
-func AddUserRepository(rep *usersDataRepository){
+func RegisterUserRepository(rep *usersDataRepository){
 	usersDataRep = *rep
 }
 
-func GetUSerRepository() usersDataRepository {
+func GetUserRepository() UserRepository {
 	return usersDataRep
 }
