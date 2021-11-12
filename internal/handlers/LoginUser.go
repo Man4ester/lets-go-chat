@@ -19,7 +19,9 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	user, err := rep.GetUserByUserName(userLoginRequest.UserName)
+
+	userRep := rep.GetUSerRepository()
+	user, err := userRep.GetUserByUserName(userLoginRequest.UserName)
 	if errors.Is(err, rep.UserNotFound) {
 		w.WriteHeader(http.StatusNotFound)
 		fmt.Println(err)

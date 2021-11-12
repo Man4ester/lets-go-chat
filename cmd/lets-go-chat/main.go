@@ -16,7 +16,7 @@ import (
 
 func main() {
 
-	configFile := flag.String("config", "", "Configuration file in JSON-format")
+	configFile := flag.String("config", "config.json", "Configuration file in JSON-format")
 	flag.Parse()
 
 	config, err := configs.LoadConfig(*configFile)
@@ -30,9 +30,10 @@ func main() {
 		log.Fatal("can't connect to DB")
 	}
 
+	rep.AddUserRepository(rep.NewUsersDataRepository(db))
 	defer db.Close()
 
-	rep.NewUsersRepository(db)
+	rep.NewUsersDataRepository(db)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/v1/user", handlers.CreateUser).Methods(http.MethodPost)

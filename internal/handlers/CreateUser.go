@@ -44,7 +44,10 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 			UserName: userResponse.UserName,
 			Password: passwordHashed,
 		}
-		err = rep.SaveUser(user)
+
+		userRep := rep.GetUSerRepository()
+
+		err = userRep.SaveUser(user)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Println(err)
