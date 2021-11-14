@@ -29,9 +29,9 @@ func main() {
 	if err != nil {
 		log.Fatal("can't connect to DB")
 	}
+	defer db.Close()
 
 	rep.RegisterUserRepository(rep.NewUsersDataRepository(db))
-	defer db.Close()
 
 	rep.NewUsersDataRepository(db)
 
