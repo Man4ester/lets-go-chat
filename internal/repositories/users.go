@@ -1,21 +1,49 @@
-package configs
+package repositories
 
 import (
+	"database/sql"
 	"errors"
 	"lets-go-chat/internal/models"
 )
 
-var userStorage = make(map[string]models.User)
-
-var UserNotFound = errors.New("USER NOT FOUND")
-
-func SaveUser(user models.User) {
-	userStorage[user.UserName] = user
+type UserRepository interface {
+	SaveUser(user models.User) error
+	GetUserByUserName(userName string) (models.User, error)
 }
 
-func GetUserByUserName(userName string) (models.User, error) {
-	if user, ok := userStorage[userName]; ok {
-		return user, nil
+type usersDataRepository struct {
+	dbCon *sql.DB
+}
+
+func NewUsersDataRepository(db *sql.DB) *usersDataRepository {
+	return &usersDataRepository{
+		dbCon: db,
 	}
-	return models.User{}, UserNotFound
+}
+
+var UserNotFound = errors.New("user not found")
+
+var UserWasNotSaved = errors.New("user was not saved in db")
+
+func (usersDataRep usersDataRepository) SaveUser (user models.User) error {
+
+	insertStmt := `insert into "users"("id", "username", "password") values($1, $2, $3)`
+	_, err := usersDataRep.dbCon.Exec(insertStmt, user.Id, user.UserName, user.Password)
+	if err != nil {
+		return UserWasNotSaved
+	}
+	return nil
+}
+
+func (usersDataRep usersDataRepository)GetUserByUserName(userName string) (models.User, error) {
+
+	var userDB models.User
+	userSql := "SELECT id, username, password FROM users WHERE username = $1"
+
+	err := usersDataRep.dbCon.QueryRow(userSql, userName).Scan(&userDB.Id, &userDB.UserName, &userDB.Password)
+	if err != nil {
+		return models.User{}, UserNotFound
+	}
+
+	return userDB, nil
 }

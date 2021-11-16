@@ -14,6 +14,21 @@ run
 docker run -p 8080:8080 -it go-chat
 ```
 
+run DB
+
+```
+docker run -it --rm --name go-postgres -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=secret postgres:14.0
+```
+
+```
+CREATE TABLE public.users (
+	id varchar NULL,
+	username varchar NULL,
+	"password" varchar NULL
+);
+
+```
+
 ## Rest API
 
 create user

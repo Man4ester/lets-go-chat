@@ -1,13 +1,14 @@
 package handlers
 
 import (
+	"net/http"
 	"encoding/json"
 	"errors"
+	"time"
+	"fmt"
 	"lets-go-chat/internal/models"
 	rep "lets-go-chat/internal/repositories"
 	"lets-go-chat/pkg/hasher"
-	"net/http"
-	"time"
 )
 
 func LoginUser(w http.ResponseWriter, r *http.Request) {
@@ -15,15 +16,20 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&userLoginRequest)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		fmt.Println(err)
 		return
 	}
-	user, err := rep.GetUserByUserName(userLoginRequest.UserName)
+
+	userRep := rep.GetUserRepository()
+	user, err := userRep.GetUserByUserName(userLoginRequest.UserName)
 	if errors.Is(err, rep.UserNotFound) {
 		w.WriteHeader(http.StatusNotFound)
+		fmt.Println(err)
 		return
 	}
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err)
 		return
 	}
 	userAuth := hasher.CheckPasswordHash(userLoginRequest.Password, user.Password)
@@ -35,8 +41,13 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	userLoginResponse := models.LoginUserResponse{
 		Url: "redirect to user",
 	}
+
+	err = json.NewEncoder(w).Encode(&userLoginResponse)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	w.Header().Add("X-Rate-Limit", "2")
 	w.Header().Add("X-Expires-After", time.Now().UTC().String())
 	w.WriteHeader(http.StatusFound)
-	json.NewEncoder(w).Encode(&userLoginResponse)
 }

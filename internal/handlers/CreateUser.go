@@ -1,12 +1,13 @@
 package handlers
 
 import (
+	"net/http"
 	"encoding/json"
+	"fmt"
 	"github.com/nu7hatch/gouuid"
 	"lets-go-chat/internal/models"
 	rep "lets-go-chat/internal/repositories"
 	"lets-go-chat/pkg/hasher"
-	"net/http"
 )
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -30,6 +31,8 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	passwordHashed, err := hasher.HashPassword(userRequest.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err)
+		return
 	} else {
 		userResponse := models.CreateUserResponse{
 			UserName: userRequest.UserName,
@@ -41,9 +44,24 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 			UserName: userResponse.UserName,
 			Password: passwordHashed,
 		}
-		rep.SaveUser(user)
+
+		userRep := rep.GetUserRepository()
+
+		err = userRep.SaveUser(user)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Println(err)
+			return
+		}
+
+		err =  json.NewEncoder(w).Encode(&userResponse)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Println(err)
+			return
+		}
+
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(&userResponse)
 	}
 
 }

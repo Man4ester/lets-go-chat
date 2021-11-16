@@ -1,36 +1,46 @@
 package main
 
 import (
-	"encoding/json"
+	"net/http"
+	"strconv"
+	"log"
+	"flag"
+	"database/sql"
+	"fmt"
 	"github.com/gorilla/mux"
+	_ "github.com/lib/pq"
 	"lets-go-chat/configs"
 	"lets-go-chat/internal/handlers"
-	"log"
-	"net/http"
-	"os"
-	"strconv"
+	rep "lets-go-chat/internal/repositories"
 )
 
-var configuration configs.Configuration
-
 func main() {
-	err := loadConfiguration()
+
+	configFile := flag.String("config", "config.json", "Configuration file in JSON-format")
+	flag.Parse()
+
+	config, err := configs.LoadConfig(*configFile)
 	if err != nil {
-		log.Fatal("CANT LOAD CONFIG")
+		log.Fatal("can't load configuration")
 	}
+
+	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", config.DBConfig.DBHost, config.DBConfig.DBPort, config.DBConfig.DBUser, config.DBConfig.DBPassword, config.DBConfig.DBName)
+	db, err := sql.Open("postgres", psqlconn)
+	if err != nil {
+		log.Fatal("can't connect to DB")
+	}
+	defer db.Close()
+
+	rep.RegisterUserRepository(rep.NewUsersDataRepository(db))
+
+	rep.NewUsersDataRepository(db)
+
 	r := mux.NewRouter()
 	r.HandleFunc("/v1/user", handlers.CreateUser).Methods(http.MethodPost)
 	r.HandleFunc("/v1/user/login", handlers.LoginUser).Methods(http.MethodPost)
-	http.ListenAndServe(":"+strconv.Itoa(configuration.ServerPort), r)
-
-}
-
-func loadConfiguration() error {
-	file, _ := os.Open("config.json")
-	decoder := json.NewDecoder(file)
-	err := decoder.Decode(&configuration)
+	err =  http.ListenAndServe(":"+strconv.Itoa(config.ServerPort), r)
 	if err != nil {
-		return err
+		log.Fatal("server failed to add listener")
 	}
-	return nil
+
 }
