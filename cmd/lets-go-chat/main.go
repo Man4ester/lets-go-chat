@@ -9,9 +9,13 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
+	"github.com/urfave/negroni"
+	"github.com/justinas/alice"
 	"lets-go-chat/configs"
 	"lets-go-chat/internal/handlers"
 	rep "lets-go-chat/internal/repositories"
+	"time"
+
 )
 
 func main() {
@@ -32,15 +36,60 @@ func main() {
 	defer db.Close()
 
 	rep.RegisterUserRepository(rep.NewUsersDataRepository(db))
-
 	rep.NewUsersDataRepository(db)
 
+	commonHandlers := alice.New(errorMiddleware, recoverHandler)
+
 	r := mux.NewRouter()
-	r.HandleFunc("/v1/user", handlers.CreateUser).Methods(http.MethodPost)
-	r.HandleFunc("/v1/user/login", handlers.LoginUser).Methods(http.MethodPost)
-	err =  http.ListenAndServe(":"+strconv.Itoa(config.ServerPort), r)
+	r.Handle("/v1/user", commonHandlers.Then(http.HandlerFunc(handlers.CreateUser))).Methods(http.MethodPost)
+	r.Handle("/v1/user/login", commonHandlers.Then(http.HandlerFunc(handlers.LoginUser))).Methods(http.MethodPost)
+	r.Handle("/v1/user/active", commonHandlers.Then(http.HandlerFunc(handlers.GetActiveUsers))).Methods(http.MethodGet)
+	r.Handle("/v1/chat/ws.rtm.start", commonHandlers.Then(http.HandlerFunc(handlers.WsRTMStart))).Methods(http.MethodGet)
+	err =  http.ListenAndServe(":"+strconv.Itoa(config.ServerPort), requestLogger(r))
 	if err != nil {
 		log.Fatal("server failed to add listener")
 	}
 
+}
+
+func errorMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		lrw := negroni.NewResponseWriter(w)
+		next.ServeHTTP(lrw, r)
+		statusCode := lrw.Status()
+
+		if lrw.Status() < http.StatusOK || lrw.Status() > http.StatusMultipleChoices {
+			log.Printf("<-- %d %s", statusCode, http.StatusText(statusCode))
+		}
+	})
+}
+
+func recoverHandler(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Printf("panic: %+v", err)
+				http.Error(w, http.StatusText(500), 500)
+			}
+		}()
+
+		next.ServeHTTP(w, r)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+func requestLogger(targetMux http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		targetMux.ServeHTTP(w, r)
+		requesterIP := r.RemoteAddr
+		log.Printf(
+			"%s\t\t%s\t\t%s\t\t%v",
+			r.Method,
+			r.RequestURI,
+			requesterIP,
+			time.Since(start),
+		)
+	})
 }
