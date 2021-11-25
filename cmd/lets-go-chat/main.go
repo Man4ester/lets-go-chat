@@ -65,6 +65,10 @@ func errorMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// The recoverHandler will catch any panic and stops the panicking sequence.
+// Instead of panic it will give a possibility to manage response in appropriate way.
+// It is possible using recover() with defer only, otherwise it will not stop panicking sequence.
+// In our case, we will return to user 500 response instead of crashed call at all.
 func recoverHandler(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
