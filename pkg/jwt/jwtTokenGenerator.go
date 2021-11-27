@@ -12,9 +12,9 @@ func GenerateJWT(userName string) (string, error) {
 	claims := token.Claims.(jwt.MapClaims)
 
 	claims["authorized"] = true
-	claims["email"] = userName
+	claims["userName"] = userName
 	claims["role"] = "user"
-	claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
+	claims["exp"] = time.Now().Add(time.Minute * 10).Unix()
 
 	tokenString, err := token.SignedString(mySigningKey)
 	if err != nil {
@@ -22,4 +22,22 @@ func GenerateJWT(userName string) (string, error) {
 		return "", err
 	}
 	return tokenString, nil
+}
+
+func DecodeJWT(tokenString string)  (string, error) {
+	claims := jwt.MapClaims{}
+	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte("secretkey"), nil
+	})
+	if err != nil {
+		return "", err
+	}
+
+	var userName string
+	for key, val := range claims {
+		if key == "userName" {
+			userName = fmt.Sprintf("%v", val)
+		}
+	}
+	return userName, nil
 }

@@ -16,7 +16,8 @@ import (
 	"lets-go-chat/internal/handlers"
 	rep "lets-go-chat/internal/repositories"
 
-
+	"lets-go-chat/internal/services"
+	"lets-go-chat/pkg/jwt"
 )
 
 func main() {
@@ -40,17 +41,45 @@ func main() {
 	rep.NewUsersDataRepository(db)
 
 	commonHandlers := alice.New(errorMiddleware, recoverHandler)
+	auth := alice.New(errorMiddleware, recoverHandler, authMiddleware)
 
 	r := mux.NewRouter()
 	r.Handle("/v1/user", commonHandlers.Then(http.HandlerFunc(handlers.CreateUser))).Methods(http.MethodPost)
 	r.Handle("/v1/user/login", commonHandlers.Then(http.HandlerFunc(handlers.LoginUser))).Methods(http.MethodPost)
 	r.Handle("/v1/user/active", commonHandlers.Then(http.HandlerFunc(handlers.GetActiveUsers))).Methods(http.MethodGet)
-	r.Handle("/v1/chat/ws.rtm.start", commonHandlers.Then(http.HandlerFunc(handlers.WsRTMStart))).Methods(http.MethodGet)
+	r.Handle("/v1/chat/ws.rtm.start", auth.Then(http.HandlerFunc(handlers.WsRTMStart))).Methods(http.MethodGet)
 	err =  http.ListenAndServe(":"+strconv.Itoa(config.ServerPort), requestLogger(r))
 	if err != nil {
 		log.Fatal("server failed to add listener")
 	}
 
+}
+
+func authMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		keys, ok := r.URL.Query()["token"]
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+			log.Println("Can't read token parameter")
+			return
+		}
+		token :=keys[0]
+		err := services.ApplyTokenFromRegistry(token)
+		if err != nil {
+			w.WriteHeader(http.StatusForbidden)
+			log.Println(err)
+			return
+		}
+		userName, err := jwt.DecodeJWT(token)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			log.Println(err)
+			return
+		}
+		fmt.Println(userName)
+		next.ServeHTTP(w, r)
+
+	})
 }
 
 func errorMiddleware(next http.Handler) http.Handler {
