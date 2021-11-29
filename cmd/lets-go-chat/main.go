@@ -79,7 +79,7 @@ func authMiddleware(next http.Handler) http.Handler {
 			log.Println(err)
 			return
 		}
-		fmt.Println(userName)
+		log.Println(userName)
 		next.ServeHTTP(w, r)
 
 	})
