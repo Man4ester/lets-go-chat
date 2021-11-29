@@ -14,5 +14,5 @@ func RemoveUserFromCache(user string){
 }
 
 func GetTotalActiveUsers() int {
-	return 10
+	return len(cacheRegistry)
 }

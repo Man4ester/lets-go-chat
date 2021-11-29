@@ -4,13 +4,14 @@ import (
 	"net/http"
 	"encoding/json"
 	"errors"
+	"log"
+	"time"
 	"lets-go-chat/internal/models"
 	rep "lets-go-chat/internal/repositories"
 	"lets-go-chat/pkg/hasher"
 	"lets-go-chat/pkg/jwt"
 	"lets-go-chat/internal/services"
-	"log"
-	"time"
+
 )
 
 func LoginUser(w http.ResponseWriter, r *http.Request) {
@@ -48,7 +49,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userLoginResponse := models.LoginUserResponse{
-		Url: "ws://fancy-chat.io/ws&token="+token,
+		Url: "ws://"+ r.Host + "/v1/chat/ws.rtm.start?token="+token,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

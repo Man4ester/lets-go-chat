@@ -15,10 +15,10 @@ import (
 	"lets-go-chat/configs"
 	"lets-go-chat/internal/handlers"
 	rep "lets-go-chat/internal/repositories"
-
 	"lets-go-chat/internal/services"
 	"lets-go-chat/pkg/jwt"
 )
+
 
 func main() {
 
@@ -54,6 +54,8 @@ func main() {
 	}
 
 }
+
+
 
 func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
