@@ -30,6 +30,8 @@ func main() {
 		log.Fatal("can't load configuration")
 	}
 
+	jwt.ApplySecret(config.JWTSecret)
+
 	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", config.DBConfig.DBHost, config.DBConfig.DBPort, config.DBConfig.DBUser, config.DBConfig.DBPassword, config.DBConfig.DBName)
 	db, err := sql.Open("postgres", psqlconn)
 	if err != nil {
@@ -41,20 +43,19 @@ func main() {
 	rep.NewUsersDataRepository(db)
 
 	commonHandlers := alice.New(errorMiddleware, recoverHandler)
-	auth := alice.New(errorMiddleware, recoverHandler, authMiddleware)
+	authHandlers := alice.New(errorMiddleware, recoverHandler, authMiddleware)
 
 	r := mux.NewRouter()
 	r.Handle("/v1/user", commonHandlers.Then(http.HandlerFunc(handlers.CreateUser))).Methods(http.MethodPost)
 	r.Handle("/v1/user/login", commonHandlers.Then(http.HandlerFunc(handlers.LoginUser))).Methods(http.MethodPost)
 	r.Handle("/v1/user/active", commonHandlers.Then(http.HandlerFunc(handlers.GetActiveUsers))).Methods(http.MethodGet)
-	r.Handle("/v1/chat/ws.rtm.start", auth.Then(http.HandlerFunc(handlers.WsRTMStart))).Methods(http.MethodGet)
+	r.Handle("/v1/chat/ws.rtm.start", authHandlers.Then(http.HandlerFunc(handlers.WsRTMStart))).Methods(http.MethodGet)
 	err =  http.ListenAndServe(":"+strconv.Itoa(config.ServerPort), requestLogger(r))
 	if err != nil {
 		log.Fatal("server failed to add listener")
 	}
 
 }
-
 
 
 func authMiddleware(next http.Handler) http.Handler {

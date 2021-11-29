@@ -6,8 +6,14 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
+var secret string
+
+func ApplySecret(secretValue string) {
+	secret = secretValue
+}
+
 func GenerateJWT(userName string) (string, error) {
-	var mySigningKey = []byte("secretkey")
+	var mySigningKey = []byte(secret)
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 
@@ -27,7 +33,7 @@ func GenerateJWT(userName string) (string, error) {
 func DecodeJWT(tokenString string)  (string, error) {
 	claims := jwt.MapClaims{}
 	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte("secretkey"), nil
+		return []byte(secret), nil
 	})
 	if err != nil {
 		return "", err
