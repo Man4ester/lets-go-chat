@@ -4,12 +4,14 @@ import (
 	"net/http"
 	"encoding/json"
 	"errors"
+	"log"
 	"time"
 	"lets-go-chat/internal/models"
 	rep "lets-go-chat/internal/repositories"
 	"lets-go-chat/pkg/hasher"
 	"lets-go-chat/pkg/jwt"
-	"log"
+	"lets-go-chat/internal/services"
+
 )
 
 func LoginUser(w http.ResponseWriter, r *http.Request) {
@@ -45,17 +47,20 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
+
 	userLoginResponse := models.LoginUserResponse{
-		Url: "ws://fancy-chat.io/ws&token="+token, //ws://fancy-chat.io/ws&token=one-time-token
+		Url: "ws://"+ r.Host + "/v1/chat/ws.rtm.start?token="+token,
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Add("X-Rate-Limit", "2")
+	w.Header().Add("X-Expires-After", time.Now().UTC().String())
 	err = json.NewEncoder(w).Encode(&userLoginResponse)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Println(err)
 		return
 	}
-	w.Header().Add("X-Rate-Limit", "2")
-	w.Header().Add("X-Expires-After", time.Now().UTC().String())
+	services.RegisterToken(token)
 	w.WriteHeader(http.StatusFound)
 }

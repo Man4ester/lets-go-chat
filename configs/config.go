@@ -8,6 +8,7 @@ import (
 type Configuration struct {
 	ServerPort int      `json:"server_port"`
 	DBConfig   DBConfig `json:"bd_config"`
+	JWTSecret string     `json:"jwt_secret"`
 }
 
 type DBConfig struct {
