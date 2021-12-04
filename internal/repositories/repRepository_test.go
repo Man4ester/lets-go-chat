@@ -1,6 +1,8 @@
 package repositories
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestUserRepository(t *testing.T) {
 	userRepository := usersDataRepository {

@@ -31,9 +31,3 @@ func TestCheckPasswordHashOK(t *testing.T) {
 		t.Error("Expected hash wasn't successful")
 	}
 }
-
-func BenchmarkHashPassword(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		HashPassword(password)
-	}
-}
