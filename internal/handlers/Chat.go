@@ -8,10 +8,13 @@ import (
 	"lets-go-chat/internal/services"
 )
 
-var upgrader = websocket.Upgrader{}
 
-func WsRTMStart(w http.ResponseWriter, r *http.Request) {
-	c, err := upgrader.Upgrade(w, r, nil)
+type WsRTM struct {
+	Upgrader websocket.Upgrader
+}
+
+func (ws WsRTM)WsRTMStart(w http.ResponseWriter, r *http.Request) {
+	c, err := ws.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Print("upgrade:", err)
 		return

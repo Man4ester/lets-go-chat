@@ -11,10 +11,13 @@ import (
 	"lets-go-chat/pkg/hasher"
 	"lets-go-chat/pkg/jwt"
 	"lets-go-chat/internal/services"
-
 )
 
-func LoginUser(w http.ResponseWriter, r *http.Request) {
+type UserLogin struct {
+	Repo rep.UserRepository
+}
+
+func (uc UserLogin) LoginUser(w http.ResponseWriter, r *http.Request) {
 	var userLoginRequest models.LoginUserRequest
 	err := json.NewDecoder(r.Body).Decode(&userLoginRequest)
 	if err != nil {
@@ -23,8 +26,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userRep := rep.GetUserRepository()
-	user, err := userRep.GetUserByUserName(userLoginRequest.UserName)
+	user, err := uc.Repo.GetUserByUserName(userLoginRequest.UserName)
 	if errors.Is(err, rep.UserNotFound) {
 		w.WriteHeader(http.StatusNotFound)
 		log.Println(err)

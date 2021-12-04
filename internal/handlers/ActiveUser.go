@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"lets-go-chat/internal/services"
 	"net/http"
-	"lets-go-chat/internal/models"
 	"encoding/json"
 	"log"
+	"lets-go-chat/internal/services"
+	"lets-go-chat/internal/models"
 )
 
 func GetActiveUsers(w http.ResponseWriter, r *http.Request) {
