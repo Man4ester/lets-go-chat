@@ -35,7 +35,7 @@ func (usersDataRep usersDataRepository) SaveUser (user models.User) error {
 	return nil
 }
 
-func (usersDataRep usersDataRepository)GetUserByUserName(userName string) (models.User, error) {
+func (usersDataRep usersDataRepository) GetUserByUserName(userName string) (models.User, error) {
 
 	var userDB models.User
 	userSql := "SELECT id, username, password FROM users WHERE username = $1"

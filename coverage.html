@@ -65,7 +65,7 @@
 				
 				<option value="file4">lets-go-chat/internal/repositories/repRegistry.go (100.0%)</option>
 				
-				<option value="file5">lets-go-chat/internal/repositories/users.go (0.0%)</option>
+				<option value="file5">lets-go-chat/internal/repositories/users.go (83.3%)</option>
 				
 				<option value="file6">lets-go-chat/internal/services/CacheService.go (100.0%)</option>
 				
@@ -336,7 +336,7 @@ type usersDataRepository struct {
         dbCon *sql.DB
 }
 
-func NewUsersDataRepository(db *sql.DB) *usersDataRepository <span class="cov0" title="0">{
+func NewUsersDataRepository(db *sql.DB) *usersDataRepository <span class="cov8" title="1">{
         return &amp;usersDataRepository{
                 dbCon: db,
         }
@@ -346,17 +346,17 @@ var UserNotFound = errors.New("user not found")
 
 var UserWasNotSaved = errors.New("user was not saved in db")
 
-func (usersDataRep usersDataRepository) SaveUser (user models.User) error <span class="cov0" title="0">{
+func (usersDataRep usersDataRepository) SaveUser (user models.User) error <span class="cov8" title="1">{
 
         insertStmt := `insert into "users"("id", "username", "password") values($1, $2, $3)`
         _, err := usersDataRep.dbCon.Exec(insertStmt, user.Id, user.UserName, user.Password)
         if err != nil </span><span class="cov0" title="0">{
                 return UserWasNotSaved
         }</span>
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov8" title="1">return nil</span>
 }
 
-func (usersDataRep usersDataRepository)GetUserByUserName(userName string) (models.User, error) <span class="cov0" title="0">{
+func (usersDataRep usersDataRepository) GetUserByUserName(userName string) (models.User, error) <span class="cov8" title="1">{
 
         var userDB models.User
         userSql := "SELECT id, username, password FROM users WHERE username = $1"
@@ -366,7 +366,7 @@ func (usersDataRep usersDataRepository)GetUserByUserName(userName string) (model
                 return models.User{}, UserNotFound
         }</span>
 
-        <span class="cov0" title="0">return userDB, nil</span>
+        <span class="cov8" title="1">return userDB, nil</span>
 }</pre>
 		
 		<pre class="file" id="file6" style="display: none">package services
