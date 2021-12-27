@@ -15,6 +15,4 @@ func ApplyTokenFromRegistry(token string) error{
 	}
 
 	return errors.New("token was used before")
-
 }
-

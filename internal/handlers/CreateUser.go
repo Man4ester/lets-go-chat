@@ -3,14 +3,18 @@ package handlers
 import (
 	"net/http"
 	"encoding/json"
+	"log"
 	"github.com/nu7hatch/gouuid"
 	"lets-go-chat/internal/models"
 	rep "lets-go-chat/internal/repositories"
 	"lets-go-chat/pkg/hasher"
-	"log"
 )
 
-func CreateUser(w http.ResponseWriter, r *http.Request) {
+type UserCreation struct {
+	Repo rep.UserRepository
+}
+
+func (uc UserCreation) CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var userRequest models.CreateUserRequest
 	err := json.NewDecoder(r.Body).Decode(&userRequest)
@@ -47,9 +51,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 			Password: passwordHashed,
 		}
 
-		userRep := rep.GetUserRepository()
-
-		err = userRep.SaveUser(user)
+		err = uc.Repo.SaveUser(user)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			log.Println(err)

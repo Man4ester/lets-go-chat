@@ -17,6 +17,7 @@ import (
 	rep "lets-go-chat/internal/repositories"
 	"lets-go-chat/internal/services"
 	"lets-go-chat/pkg/jwt"
+	"github.com/gorilla/websocket"
 )
 
 
@@ -46,10 +47,23 @@ func main() {
 	authHandlers := alice.New(errorMiddleware, recoverHandler, authMiddleware)
 
 	r := mux.NewRouter()
-	r.Handle("/v1/user", commonHandlers.Then(http.HandlerFunc(handlers.CreateUser))).Methods(http.MethodPost)
-	r.Handle("/v1/user/login", commonHandlers.Then(http.HandlerFunc(handlers.LoginUser))).Methods(http.MethodPost)
+
+	hUserCreation := handlers.UserCreation{
+		Repo: rep.GetUserRepository(),
+	}
+
+	hUserLogin := handlers.UserLogin{
+		Repo: rep.GetUserRepository(),
+	}
+
+	hWS := handlers.WsRTM{
+		Upgrader: websocket.Upgrader{},
+	}
+
+	r.Handle("/v1/user", commonHandlers.Then(http.HandlerFunc(hUserCreation.CreateUser))).Methods(http.MethodPost)
+	r.Handle("/v1/user/login", commonHandlers.Then(http.HandlerFunc(hUserLogin.LoginUser))).Methods(http.MethodPost)
 	r.Handle("/v1/user/active", commonHandlers.Then(http.HandlerFunc(handlers.GetActiveUsers))).Methods(http.MethodGet)
-	r.Handle("/v1/chat/ws.rtm.start", authHandlers.Then(http.HandlerFunc(handlers.WsRTMStart))).Methods(http.MethodGet)
+	r.Handle("/v1/chat/ws.rtm.start", authHandlers.Then(http.HandlerFunc(hWS.WsRTMStart))).Methods(http.MethodGet)
 	err =  http.ListenAndServe(":"+strconv.Itoa(config.ServerPort), requestLogger(r))
 	if err != nil {
 		log.Fatal("server failed to add listener")

@@ -1,0 +1,521 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>handlers: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">lets-go-chat/internal/handlers/ActiveUser.go (62.5%)</option>
+				
+				<option value="file1">lets-go-chat/internal/handlers/Chat.go (19.0%)</option>
+				
+				<option value="file2">lets-go-chat/internal/handlers/CreateUser.go (57.6%)</option>
+				
+				<option value="file3">lets-go-chat/internal/handlers/LoginUser.go (51.4%)</option>
+				
+				<option value="file4">lets-go-chat/internal/repositories/repRegistry.go (100.0%)</option>
+				
+				<option value="file5">lets-go-chat/internal/repositories/users.go (83.3%)</option>
+				
+				<option value="file6">lets-go-chat/internal/services/CacheService.go (100.0%)</option>
+				
+				<option value="file7">lets-go-chat/internal/services/TokenService.go (100.0%)</option>
+				
+				<option value="file8">lets-go-chat/pkg/hasher/hasher.go (90.0%)</option>
+				
+				<option value="file9">lets-go-chat/pkg/jwt/jwtTokenGenerator.go (82.6%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package handlers
+
+import (
+        "net/http"
+        "encoding/json"
+        "log"
+        "lets-go-chat/internal/services"
+        "lets-go-chat/internal/models"
+)
+
+func GetActiveUsers(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        count :=services.GetTotalActiveUsers()
+        userResponse := models.ActiveUserResponse{
+                Count: count,
+        }
+
+        err := json.NewEncoder(w).Encode(&amp;userResponse)
+        if err != nil </span><span class="cov0" title="0">{
+                w.WriteHeader(http.StatusInternalServerError)
+                log.Println(err)
+                return
+        }</span>
+        <span class="cov8" title="1">w.WriteHeader(http.StatusOK)</span>
+}
+
+
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package handlers
+
+import (
+        "net/http"
+        "log"
+        "github.com/gorilla/websocket"
+        "lets-go-chat/pkg/jwt"
+        "lets-go-chat/internal/services"
+)
+
+
+type WsRTM struct {
+        Upgrader websocket.Upgrader
+}
+
+func (ws WsRTM)WsRTMStart(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        c, err := ws.Upgrader.Upgrade(w, r, nil)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Print("upgrade:", err)
+                return
+        }</span>
+
+        <span class="cov0" title="0">keys, _ := r.URL.Query()["token"]
+        token :=keys[0]
+        userName, _ := jwt.DecodeJWT(token)
+        services.AddUserToCache(userName)
+
+        defer c.Close()
+        for </span><span class="cov0" title="0">{
+                mt, message, err := c.ReadMessage()
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Println("read:", err)
+                        break</span>
+                }
+                <span class="cov0" title="0">log.Printf("recv: %s", message)
+                err = c.WriteMessage(mt, message)
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Println("write:", err)
+                        break</span>
+                }
+        }
+
+        <span class="cov0" title="0">log.Println("Disconnected user:" + userName)
+        services.RemoveUserFromCache(userName)</span>
+
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package handlers
+
+import (
+        "net/http"
+        "encoding/json"
+        "log"
+        "github.com/nu7hatch/gouuid"
+        "lets-go-chat/internal/models"
+        rep "lets-go-chat/internal/repositories"
+        "lets-go-chat/pkg/hasher"
+)
+
+type UserCreation struct {
+        Repo rep.UserRepository
+}
+
+func (uc UserCreation) CreateUser(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        w.Header().Set("Content-Type", "application/json")
+        var userRequest models.CreateUserRequest
+        err := json.NewDecoder(r.Body).Decode(&amp;userRequest)
+        if err != nil </span><span class="cov0" title="0">{
+                w.WriteHeader(http.StatusBadRequest)
+                log.Println(err)
+                return
+        }</span>
+        <span class="cov8" title="1">userId, err := uuid.NewV4()
+        if err != nil </span><span class="cov0" title="0">{
+                w.WriteHeader(http.StatusInternalServerError)
+                log.Println(err)
+                return
+        }</span>
+        <span class="cov8" title="1">if len(userRequest.UserName) &lt; 3 </span><span class="cov0" title="0">{
+                w.WriteHeader(http.StatusBadRequest)
+                return
+        }</span>
+
+        <span class="cov8" title="1">passwordHashed, err := hasher.HashPassword(userRequest.Password)
+        if err != nil </span><span class="cov8" title="1">{
+                w.WriteHeader(http.StatusInternalServerError)
+                log.Println(err)
+                return
+        }</span> else<span class="cov8" title="1"> {
+                userResponse := models.CreateUserResponse{
+                        UserName: userRequest.UserName,
+                        Id:       userId.String(),
+                }
+
+                user := models.User{
+                        Id:       userResponse.Id,
+                        UserName: userResponse.UserName,
+                        Password: passwordHashed,
+                }
+
+                err = uc.Repo.SaveUser(user)
+                if err != nil </span><span class="cov0" title="0">{
+                        w.WriteHeader(http.StatusInternalServerError)
+                        log.Println(err)
+                        return
+                }</span>
+
+                <span class="cov8" title="1">err =  json.NewEncoder(w).Encode(&amp;userResponse)
+                if err != nil </span><span class="cov0" title="0">{
+                        w.WriteHeader(http.StatusInternalServerError)
+                        log.Println(err)
+                        return
+                }</span>
+
+                <span class="cov8" title="1">w.WriteHeader(http.StatusCreated)</span>
+        }
+
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package handlers
+
+import (
+        "net/http"
+        "encoding/json"
+        "errors"
+        "log"
+        "time"
+        "lets-go-chat/internal/models"
+        rep "lets-go-chat/internal/repositories"
+        "lets-go-chat/pkg/hasher"
+        "lets-go-chat/pkg/jwt"
+        "lets-go-chat/internal/services"
+)
+
+type UserLogin struct {
+        Repo rep.UserRepository
+}
+
+func (uc UserLogin) LoginUser(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        var userLoginRequest models.LoginUserRequest
+        err := json.NewDecoder(r.Body).Decode(&amp;userLoginRequest)
+        if err != nil </span><span class="cov0" title="0">{
+                w.WriteHeader(http.StatusBadRequest)
+                log.Println(err)
+                return
+        }</span>
+
+        <span class="cov8" title="1">user, err := uc.Repo.GetUserByUserName(userLoginRequest.UserName)
+        if errors.Is(err, rep.UserNotFound) </span><span class="cov0" title="0">{
+                w.WriteHeader(http.StatusNotFound)
+                log.Println(err)
+                return
+        }</span>
+        <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
+                w.WriteHeader(http.StatusInternalServerError)
+                log.Println(err)
+                return
+        }</span>
+        <span class="cov8" title="1">userAuth := hasher.CheckPasswordHash(userLoginRequest.Password, user.Password)
+        if !userAuth </span><span class="cov0" title="0">{
+                w.WriteHeader(http.StatusForbidden)
+                return
+        }</span>
+
+        <span class="cov8" title="1">token, err := jwt.GenerateJWT(userLoginRequest.UserName)
+        if err != nil </span><span class="cov0" title="0">{
+                w.WriteHeader(http.StatusInternalServerError)
+                log.Println(err)
+                return
+        }</span>
+
+        <span class="cov8" title="1">userLoginResponse := models.LoginUserResponse{
+                Url: "ws://"+ r.Host + "/v1/chat/ws.rtm.start?token="+token,
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.Header().Add("X-Rate-Limit", "2")
+        w.Header().Add("X-Expires-After", time.Now().UTC().String())
+        err = json.NewEncoder(w).Encode(&amp;userLoginResponse)
+        if err != nil </span><span class="cov0" title="0">{
+                w.WriteHeader(http.StatusInternalServerError)
+                log.Println(err)
+                return
+        }</span>
+        <span class="cov8" title="1">services.RegisterToken(token)
+        w.WriteHeader(http.StatusFound)</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package repositories
+
+var usersDataRep usersDataRepository
+
+func RegisterUserRepository(rep *usersDataRepository)<span class="cov8" title="1">{
+        usersDataRep = *rep
+}</span>
+
+func GetUserRepository() UserRepository <span class="cov8" title="1">{
+        return usersDataRep
+}</span>
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package repositories
+
+import (
+        "database/sql"
+        "errors"
+        "lets-go-chat/internal/models"
+)
+
+type UserRepository interface {
+        SaveUser(user models.User) error
+        GetUserByUserName(userName string) (models.User, error)
+}
+
+type usersDataRepository struct {
+        dbCon *sql.DB
+}
+
+func NewUsersDataRepository(db *sql.DB) *usersDataRepository <span class="cov8" title="1">{
+        return &amp;usersDataRepository{
+                dbCon: db,
+        }
+}</span>
+
+var UserNotFound = errors.New("user not found")
+
+var UserWasNotSaved = errors.New("user was not saved in db")
+
+func (usersDataRep usersDataRepository) SaveUser (user models.User) error <span class="cov8" title="1">{
+
+        insertStmt := `insert into "users"("id", "username", "password") values($1, $2, $3)`
+        _, err := usersDataRep.dbCon.Exec(insertStmt, user.Id, user.UserName, user.Password)
+        if err != nil </span><span class="cov0" title="0">{
+                return UserWasNotSaved
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (usersDataRep usersDataRepository) GetUserByUserName(userName string) (models.User, error) <span class="cov8" title="1">{
+
+        var userDB models.User
+        userSql := "SELECT id, username, password FROM users WHERE username = $1"
+
+        err := usersDataRep.dbCon.QueryRow(userSql, userName).Scan(&amp;userDB.Id, &amp;userDB.UserName, &amp;userDB.Password)
+        if err != nil </span><span class="cov0" title="0">{
+                return models.User{}, UserNotFound
+        }</span>
+
+        <span class="cov8" title="1">return userDB, nil</span>
+}</pre>
+		
+		<pre class="file" id="file6" style="display: none">package services
+
+var cacheRegistry = make(map[string] bool)
+
+
+func AddUserToCache(user string)<span class="cov8" title="1">{
+        cacheRegistry[user]= true
+}</span>
+
+func RemoveUserFromCache(user string)<span class="cov8" title="1">{
+        if _, ok := cacheRegistry[user]; ok </span><span class="cov8" title="1">{
+                delete(cacheRegistry, user)
+        }</span>
+}
+
+func GetTotalActiveUsers() int <span class="cov8" title="1">{
+        return len(cacheRegistry)
+}</pre>
+		
+		<pre class="file" id="file7" style="display: none">package services
+
+import "errors"
+
+var tokenRegistry = make(map[string] bool)
+
+func RegisterToken(token string) <span class="cov8" title="1">{
+        tokenRegistry[token] = true
+}</span>
+
+func ApplyTokenFromRegistry(token string) error<span class="cov8" title="1">{
+        if _, ok := tokenRegistry[token]; ok </span><span class="cov8" title="1">{
+                delete(tokenRegistry, token)
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">return errors.New("token was used before")</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">// Package hasher is a module for hashing txt valuse and validation
+package hasher
+
+import (
+        "crypto/md5"
+        "encoding/hex"
+        "errors"
+)
+
+// HashPassword function for hashing txt
+func HashPassword(password string) (string, error) <span class="cov8" title="1">{
+        if len(password) &lt; 3 </span><span class="cov8" title="1">{
+                return "", errors.New("password to short")
+        }</span>
+        <span class="cov8" title="1">data := []byte(password)
+        b := md5.Sum(data)
+        pass := hex.EncodeToString(b[:])
+        return pass, nil</span>
+}
+
+// CheckPasswordHash function for checking hashed txt via hash
+func CheckPasswordHash(password, hash string) bool <span class="cov8" title="1">{
+        receivedHash, err := HashPassword(password)
+        if err != nil </span><span class="cov0" title="0">{
+                return false
+        }</span>
+        <span class="cov8" title="1">return receivedHash == hash</span>
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package jwt
+
+import (
+        "time"
+        "fmt"
+        "github.com/dgrijalva/jwt-go"
+)
+
+var secret string
+
+func ApplySecret(secretValue string) <span class="cov0" title="0">{
+        secret = secretValue
+}</span>
+
+func GenerateJWT(userName string) (string, error) <span class="cov8" title="1">{
+        var mySigningKey = []byte(secret)
+        token := jwt.New(jwt.SigningMethodHS256)
+        claims := token.Claims.(jwt.MapClaims)
+
+        claims["authorized"] = true
+        claims["userName"] = userName
+        claims["role"] = "user"
+        claims["exp"] = time.Now().Add(time.Minute * 10).Unix()
+
+        tokenString, err := token.SignedString(mySigningKey)
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Errorf("Something Went Wrong: %s", err.Error())
+                return "", err
+        }</span>
+        <span class="cov8" title="1">return tokenString, nil</span>
+}
+
+func DecodeJWT(tokenString string)  (string, error) <span class="cov8" title="1">{
+        claims := jwt.MapClaims{}
+        _, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) </span><span class="cov8" title="1">{
+                return []byte(secret), nil
+        }</span>)
+        <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov8" title="1">var userName string
+        for key, val := range claims </span><span class="cov8" title="1">{
+                if key == "userName" </span><span class="cov8" title="1">{
+                        userName = fmt.Sprintf("%v", val)
+                }</span>
+        }
+        <span class="cov8" title="1">return userName, nil</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

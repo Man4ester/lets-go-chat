@@ -52,3 +52,12 @@ curl --location --request POST 'http://localhost:8080/v1/user/login' \
     "password":"password"
 }'
 ```
+
+Test covearge
+```
+go test -cover
+go test -cover -coverprofile=c.out
+go tool cover -html=c.out -o coverage.html 
+go test -bench=.
+go test ./...
+```
