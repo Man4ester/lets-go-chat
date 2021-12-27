@@ -29,6 +29,10 @@ CREATE TABLE public.users (
 
 ```
 
+run Redis
+```
+docker run --name my-redis -p 6379:6379 -d redis
+```
 ## Rest API
 
 create user

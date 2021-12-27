@@ -12,14 +12,13 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/urfave/negroni"
 	"github.com/justinas/alice"
+	"github.com/gorilla/websocket"
 	"lets-go-chat/configs"
 	"lets-go-chat/internal/handlers"
 	rep "lets-go-chat/internal/repositories"
 	"lets-go-chat/internal/services"
 	"lets-go-chat/pkg/jwt"
-	"github.com/gorilla/websocket"
 )
-
 
 func main() {
 
@@ -59,6 +58,7 @@ func main() {
 	hWS := handlers.WsRTM{
 		Upgrader: websocket.Upgrader{},
 	}
+	services.StartRedis(config.RedisUrl)
 
 	r.Handle("/v1/user", commonHandlers.Then(http.HandlerFunc(hUserCreation.CreateUser))).Methods(http.MethodPost)
 	r.Handle("/v1/user/login", commonHandlers.Then(http.HandlerFunc(hUserLogin.LoginUser))).Methods(http.MethodPost)
