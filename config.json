@@ -8,5 +8,6 @@
     "db_user": "postgres",
     "db_password": "secret"
   },
-  "jwt_secret": "secretkey"
+  "jwt_secret": "secretkey",
+  "redis_url": "localhost:6379"
 }

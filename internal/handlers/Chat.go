@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"lets-go-chat/pkg/jwt"
 	"lets-go-chat/internal/services"
+	"lets-go-chat/internal/models"
 )
 
 
@@ -24,23 +25,26 @@ func (ws WsRTM)WsRTMStart(w http.ResponseWriter, r *http.Request) {
 	token :=keys[0]
 	userName, _ := jwt.DecodeJWT(token)
 	services.AddUserToCache(userName)
+	services.RegisterNewClient(c)
+
+	go services.HandleMessages()
 
 	defer c.Close()
 	for {
-		mt, message, err := c.ReadMessage()
+		_, message, err := c.ReadMessage()
+		var msg  = models.ChatMessage{
+			Text: string(message),
+			Username: userName,
+		}
+
+		services.AddMessage(msg)
+
 		if err != nil {
 			log.Println("read:", err)
-			break
-		}
-		log.Printf("recv: %s", message)
-		err = c.WriteMessage(mt, message)
-		if err != nil {
-			log.Println("write:", err)
 			break
 		}
 	}
 
 	log.Println("Disconnected user:" + userName)
 	services.RemoveUserFromCache(userName)
-
 }

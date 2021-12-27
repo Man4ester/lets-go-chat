@@ -8,7 +8,8 @@ import (
 type Configuration struct {
 	ServerPort int      `json:"server_port"`
 	DBConfig   DBConfig `json:"bd_config"`
-	JWTSecret string     `json:"jwt_secret"`
+	JWTSecret string    `json:"jwt_secret"`
+	RedisUrl  string	`json:"redis_url"`
 }
 
 type DBConfig struct {
