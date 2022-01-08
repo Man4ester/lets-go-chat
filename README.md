@@ -65,3 +65,8 @@ go tool cover -html=c.out -o coverage.html
 go test -bench=.
 go test ./...
 ```
+
+Code generation via OpenApi
+```
+go run oapi-codegen.go  /lets-go-chat/api/api.yaml >/lets-go-chat/pkg/openapi3/generated.go
+```
