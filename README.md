@@ -70,3 +70,16 @@ Code generation via OpenApi
 ```
 go run oapi-codegen.go  /lets-go-chat/api/api.yaml >/lets-go-chat/pkg/openapi3/generated.go
 ```
+
+Profiling
+```
+go test -cpuprofile cpu.prof -memprofile mem.prof -bench .
+go tool pprof mem.prof 
+go tool pprof cpu.prof
+```
+
+Tracing
+```
+go test -trace=trace.out
+go tool trace trace.out
+```

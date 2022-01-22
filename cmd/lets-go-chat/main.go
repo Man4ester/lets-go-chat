@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+	_ "net/http/pprof"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 	"github.com/urfave/negroni"
@@ -18,12 +19,61 @@ import (
 	rep "lets-go-chat/internal/repositories"
 	"lets-go-chat/internal/services"
 	"lets-go-chat/pkg/jwt"
+	"os"
+	"runtime/pprof"
+	"runtime/trace"
+	"runtime"
 )
+
+var cpuprofile = flag.String("cpuprofile", "cpu.prof", "write cpu profile to `file`")
+var memprofile = flag.String("memprofile", "mem.prof", "write memory profile to `file`")
 
 func main() {
 
 	configFile := flag.String("config", "config.json", "Configuration file in JSON-format")
 	flag.Parse()
+
+	//---------------
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal("could not create CPU profile: ", err)
+		}
+		defer f.Close() // error handling omitted for example
+		if err := pprof.StartCPUProfile(f); err != nil {
+			log.Fatal("could not start CPU profile: ", err)
+		}
+		defer pprof.StopCPUProfile()
+	}
+
+	f, err := os.Create("trace.out")
+	if err != nil {
+		log.Fatalf("failed to create trace output file: %v", err)
+	}
+	defer func() {
+		if err := f.Close(); err != nil {
+			log.Fatalf("failed to close trace file: %v", err)
+		}
+	}()
+
+	if err := trace.Start(f); err != nil {
+		log.Fatalf("failed to start trace: %v", err)
+	}
+	defer trace.Stop()
+
+	if *memprofile != "" {
+		f, err := os.Create(*memprofile)
+		if err != nil {
+			log.Fatal("could not create memory profile: ", err)
+		}
+		defer f.Close() // error handling omitted for example
+		runtime.GC() // get up-to-date statistics
+		if err := pprof.WriteHeapProfile(f); err != nil {
+			log.Fatal("could not write memory profile: ", err)
+		}
+	}
+
+	// -------------------------------------------------------------
 
 	config, err := configs.LoadConfig(*configFile)
 	if err != nil {
@@ -60,6 +110,8 @@ func main() {
 	}
 	services.StartRedis(config.RedisUrl)
 
+
+
 	r.Handle("/v1/user", commonHandlers.Then(http.HandlerFunc(hUserCreation.CreateUser))).Methods(http.MethodPost)
 	r.Handle("/v1/user/login", commonHandlers.Then(http.HandlerFunc(hUserLogin.LoginUser))).Methods(http.MethodPost)
 	r.Handle("/v1/user/active", commonHandlers.Then(http.HandlerFunc(handlers.GetActiveUsers))).Methods(http.MethodGet)
@@ -68,6 +120,8 @@ func main() {
 	if err != nil {
 		log.Fatal("server failed to add listener")
 	}
+
+
 
 }
 
